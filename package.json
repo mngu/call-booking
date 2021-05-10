@@ -1,0 +1,15 @@
+{
+  "name": "call-booking",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Maxime Nguyen <maxime.nguyen@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "front",
+    "api"
+  ],
+  "devDependencies": {
+    "prettier": "^2.2.1"
+  }
+}
