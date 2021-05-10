@@ -29,7 +29,12 @@ app.get("/user", async (req, res) => {
 app.get("/:userId/meetings", async (req, res) => {
   const { userId } = req.params;
   const results = await zoomRequest.get(`/users/${userId}/meetings`);
-  res.json(results.data);
+  const meetings = results.data.meetings.map((meeting) => ({
+    duration: meeting.duration,
+    startTime: meeting.start_time,
+    topic: meeting.topic,
+  }));
+  res.json(meetings);
 });
 
 app.post("/:userId/meetings", async (req, res) => {
@@ -40,12 +45,18 @@ app.post("/:userId/meetings", async (req, res) => {
     {
       type: 2,
       topic,
+      // Sending start_time to ISO 8601 non-extended format
       start_time: startTime.split(".")[0] + "Z",
       duration,
     },
     { headers: { "Content-Type": "application/json" } }
   );
-  res.json(results.data);
+  const meeting = results.data;
+  res.json({
+    duration: meeting.duration,
+    startTime: meeting.start_time,
+    topic: meeting.topic,
+  });
 });
 
 app.listen(PORT, () => {

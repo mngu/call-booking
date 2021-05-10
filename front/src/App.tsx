@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
-import FullCalendar, { EventDropArg } from "@fullcalendar/react";
+import FullCalendar, { EventDropArg, EventInput } from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin, {
   Draggable,
@@ -20,12 +20,18 @@ type Timeslot = {
   end: Date | null;
 };
 
+type Meeting = {
+  duration: number;
+  startTime: Date;
+  topic: string;
+};
+
 function App() {
   const dragElement = useRef<HTMLSpanElement>(null);
   const calendar = useRef<FullCalendar>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [isEventDraggable, setIsEventDraggable] = useState(true);
-  const [plannedMeetings, setPlannedMeetings] = useState<any>([]);
+  const [plannedMeetings, setPlannedMeetings] = useState<EventInput[]>([]);
   const [topic, setTopic] = useState("Meeting");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [timeslot, setTimeslot] = useState<Timeslot>({
@@ -55,14 +61,14 @@ function App() {
         return results.data.id;
       })
       .then(async (userId) => {
-        const meetings: AxiosResponse = await axios.get(
+        const results: AxiosResponse<Meeting[]> = await axios.get(
           `${API_URL}/${userId}/meetings`
         );
         setPlannedMeetings(
-          meetings.data.meetings.map((meeting: any) => ({
+          results.data.map((meeting: Meeting) => ({
             title: meeting.topic,
-            start: meeting.start_time,
-            end: addMinutes(new Date(meeting.start_time), meeting.duration),
+            start: meeting.startTime,
+            end: addMinutes(new Date(meeting.startTime), meeting.duration),
             editable: false,
           }))
         );
@@ -96,8 +102,8 @@ function App() {
         ...plannedMeetings,
         {
           title: meeting.topic,
-          start: meeting.start_time,
-          end: addMinutes(new Date(meeting.start_time), meeting.duration),
+          start: meeting.startTime,
+          end: addMinutes(new Date(meeting.startTime), meeting.duration),
           editable: false,
         },
       ]);
