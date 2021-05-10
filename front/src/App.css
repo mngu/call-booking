@@ -23,3 +23,27 @@
 .center {
   text-align: center;
 }
+
+.timeslot {
+  padding: 1rem;
+}
+
+.drag-section {
+  text-align: center;
+}
+.drag-element {
+  display: inline-block;
+  padding: 1rem;
+  color: white;
+  background-color: #3788d8;
+  cursor: grab;
+}
+.drag-element.disabled {
+  background-color: lightgrey;
+}
+.actions > :first-child {
+  margin-right: 2rem;
+}
+.topic-form {
+  margin-bottom: 1rem;
+}

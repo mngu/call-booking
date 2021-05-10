@@ -24,10 +24,10 @@ function App() {
   const dragElement = useRef<HTMLSpanElement>(null);
   const calendar = useRef<FullCalendar>(null);
   const [userId, setUserId] = useState<string | null>(null);
-  const [eventDraggable, setEventDraggable] = useState(true);
+  const [isEventDraggable, setIsEventDraggable] = useState(true);
   const [plannedMeetings, setPlannedMeetings] = useState<any>([]);
   const [topic, setTopic] = useState("Meeting");
-  const [showModal, setShowModal] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [timeslot, setTimeslot] = useState<Timeslot>({
     start: null,
     end: null,
@@ -69,12 +69,12 @@ function App() {
       });
   }, []);
 
-  const confirm = () => {
-    setShowModal(true);
+  const showModal = () => {
+    setIsModalVisible(true);
   };
 
-  const cancel = () => {
-    setShowModal(false);
+  const hideModal = () => {
+    setIsModalVisible(false);
   };
 
   const book = async () => {
@@ -101,15 +101,20 @@ function App() {
           editable: false,
         },
       ]);
-      setShowModal(false);
-      setEventDraggable(true);
-      const calendarApi = calendar.current?.getApi();
-      calendarApi?.getEventById("newMeeting")?.remove();
+      setIsModalVisible(false);
+      cancelNewEvent();
     }
   };
 
+  const cancelNewEvent = () => {
+    const calendarApi = calendar.current?.getApi();
+    calendarApi?.getEventById("newMeeting")?.remove();
+    setTimeslot({ start: null, end: null });
+    setIsEventDraggable(true);
+  };
+
   const onDrop = (info: DropArg) => {
-    setEventDraggable(false);
+    setIsEventDraggable(false);
     setTimeslot({ start: info.date, end: addMinutes(info.date, 60) });
   };
 
@@ -138,37 +143,37 @@ function App() {
 
   return (
     <div>
-      <div>
-        <span id={eventDraggable ? "draggable" : ""} ref={dragElement}>
+      <h1>Call Booking</h1>
+      <div className="drag-section">
+        <span
+          id={isEventDraggable ? "draggable" : ""}
+          className={`drag-element ${!isEventDraggable && "disabled"}`}
+          ref={dragElement}
+        >
           DRAG ME
         </span>
-        {showModal && (
+        {isModalVisible && (
           <>
-            <div className="backdrop" onClick={cancel} />
+            <div className="backdrop" onClick={hideModal} />
             <div className="modal center">
               <h3>Confirm booking</h3>
-              {timeslot.start && timeslot.end && (
-                <p>
-                  <strong>{dateFormat(timeslot.start)}</strong>
-                  <br />
-                  <strong>{dateFormat(timeslot.end)}</strong>
-                </p>
-              )}
-              <div>
-                <input type="text" onChange={onTopicChange} />
+              <TimeslotDisplay timeslot={timeslot} />
+              <div className="topic-form">
+                <label htmlFor="topic">Topic</label>
+                <input id="topic" type="text" placeholder={topic} onChange={onTopicChange} />
               </div>
-              <button onClick={cancel}>Cancel</button>
-              <button onClick={book}>Book</button>
+              <div className="actions">
+                <button onClick={hideModal}>Cancel</button>
+                <button onClick={book}>Book</button>
+              </div>
             </div>
           </>
         )}
+        <TimeslotDisplay timeslot={timeslot} />
         {timeslot.start && timeslot.end && (
-          <div>
-            <span>From {dateFormat(timeslot.start)}</span>
-            <br />
-            <span>to {dateFormat(timeslot.end)}</span>
-            <br />
-            <button onClick={confirm}>Confirm</button>
+          <div className="actions">
+            <button onClick={cancelNewEvent}>Cancel</button>
+            <button onClick={showModal}>Confirm</button>
           </div>
         )}
       </div>
@@ -183,6 +188,27 @@ function App() {
         events={plannedMeetings}
       />
     </div>
+  );
+}
+
+type TimeslotDisplayProps = {
+  timeslot: Timeslot;
+};
+
+function TimeslotDisplay({ timeslot }: TimeslotDisplayProps) {
+  return (
+    timeslot.start &&
+    timeslot.end && (
+      <div className="timeslot">
+        <span>
+          From <strong>{dateFormat(timeslot.start)}</strong>
+        </span>
+        <br />
+        <span>
+          To <strong>{dateFormat(timeslot.end)}</strong>
+        </span>
+      </div>
+    )
   );
 }
 
